@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Resume Feedback</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="container">
+    <h1>AI Resume Feedback</h1>
+    <p>Get AI-powered feedback and an improved resume instantly</p>
+
+    <!-- Resume Text -->
+    <label>Paste Your Resume</label>
+    <textarea id="resumeText" placeholder="Paste your resume text here..."></textarea>
+
+    <p class="helper-text">OR upload a resume image</p>
+
+    <!-- Upload Resume Image -->
+    <label>Upload Resume (Image)</label>
+    <div class="upload-box">
+      <input type="file" id="resumeImage" accept="image/*" hidden>
+      <label for="resumeImage" class="upload-label">
+        📄 Click to upload resume image
+        <span>JPG or PNG</span>
+      </label>
+    </div>
+
+    <!-- Image Preview -->
+    <div id="imagePreview" class="image-preview hidden">
+      <img id="previewImg" alt="Resume Preview">
+    </div>
+
+    <!-- Job Role -->
+    <label>Target Job Role</label>
+    <input type="text" id="jobRole" placeholder="e.g. Frontend Developer">
+
+    <!-- Experience -->
+    <label>Experience Level</label>
+    <select id="experience">
+      <option>Fresher</option>
+      <option>1–3 Years</option>
+      <option>3+ Years</option>
+    </select>
+
+    <!-- Button -->
+    <button id="analyzeBtn">Analyze & Improve Resume</button>
+
+    <!-- Output -->
+    <div id="output" class="hidden">
+      <h2>AI Feedback</h2>
+
+      <p><strong>ATS Score:</strong> <span id="score"></span></p>
+      <p><strong>Missing Skills:</strong> <span id="skills"></span></p>
+
+      <p><strong>Suggestions:</strong></p>
+      <ul id="suggestions"></ul>
+
+      <hr class="divider">
+
+      <h3>AI-Improved Resume</h3>
+      <div id="improvedResume" class="improved-resume"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

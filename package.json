@@ -1,0 +1,11 @@
+{
+  "name": "ai-resume-feedback",
+  "version": "1.0.0",
+  "description": "AI-powered resume feedback and improvement",
+  "scripts": {
+    "prestart": "cd backend && npm install",
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
+  },
+  "private": true
+}

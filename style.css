@@ -1,0 +1,241 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", system-ui, sans-serif;
+}
+
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #7f94da, #dfb7e7, #c4f0f3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Main Card */
+.container {
+  width: 100%;
+  max-width: 780px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 24px;
+  padding: 42px;
+  box-shadow:
+    0 20px 40px rgba(99, 102, 241, 0.15),
+    0 50px 100px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.6s ease;
+}
+
+/* Fade */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Headings */
+h1 {
+  text-align: center;
+  font-size: 39px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #6366f1, #ec4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+p {
+  text-align: center;
+  font-size: 15px;
+  color: #64748b;
+  margin-bottom: 28px;
+}
+
+/* Labels */
+label {
+  display: block;
+  margin: 20px 0 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: #334155;
+}
+
+/* Inputs */
+textarea,
+input,
+select {
+  width: 100%;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  font-size: 14px;
+  transition: all 0.25s ease;
+}
+
+textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+textarea:focus,
+input:focus,
+select:focus {
+  outline: none;
+  border-color: #a78bfa;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(167, 139, 250, 0.2);
+}
+
+/* Helper text */
+.helper-text {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 12px 0;
+  text-align: center;
+}
+
+/* Upload Box */
+.upload-box {
+  margin-top: 6px;
+}
+
+.upload-label {
+  padding: 26px;
+  border-radius: 20px;
+  border: 2px dashed #c4b5fd;
+  background: linear-gradient(135deg, #fafaff, #f5f3ff);
+  text-align: center;
+  cursor: pointer;
+  color: #4c1d95;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.upload-label span {
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: #8b5cf6;
+}
+
+.upload-label:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #ede9fe, #fdf4ff);
+  box-shadow: 0 15px 30px rgba(139, 92, 246, 0.25);
+}
+
+/* Image Preview */
+.image-preview {
+  margin-top: 18px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fafafa;
+  border: 1px solid #e5e7eb;
+}
+
+.image-preview img {
+  width: 100%;
+  border-radius: 14px;
+}
+
+/* Button */
+button {
+  margin-top: 32px;
+  width: 100%;
+  padding: 18px;
+  border-radius: 20px;
+  border: none;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(135deg, #494bd2, #d9428d);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 20px 45px rgba(236, 72, 153, 0.35);
+}
+
+/* Output Section */
+#output {
+  margin-top: 46px;
+  padding: 32px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, #f8fafc, #fdf2f8);
+  border: 1px solid #e5e7eb;
+}
+
+#output h2 {
+  font-size: 22px;
+  margin-bottom: 14px;
+  color: #1e293b;
+}
+
+/* Score */
+#score {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #34d399, #22c55e);
+  color: #064e3b;
+  font-weight: 700;
+}
+
+/* Divider */
+.divider {
+  margin: 28px 0;
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #c7d2fe, transparent);
+}
+
+/* Improved Resume */
+.improved-resume {
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 18px;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #334155;
+}
+
+/* Utility */
+.hidden {
+  display: none;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .container {
+    padding: 26px;
+  }
+
+  h1 {
+    font-size: 26px;
+  }
+}
+
+/* SLIDE DOWN EFFECT */
+.slide-in {
+  animation: slideDown 0.6s ease forwards;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
