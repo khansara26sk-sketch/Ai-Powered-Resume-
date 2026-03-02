@@ -1,7 +1,7 @@
 const API_BASE =
   window.location.hostname === "localhost"
     ? "http://localhost:3000"
-    : "";
+    : "https://ai-powered-resume-backend-f3o3.onrender.com";
 
 /* ============================= */
 /*      FILE PREVIEW LOGIC      */
