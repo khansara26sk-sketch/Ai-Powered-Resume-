@@ -1,13 +1,14 @@
 const API_BASE =
-  window.location.hostname === "localhost"
+  window.location.hostname === "localhost" ||
+  window.location.hostname === "127.0.0.1"
     ? "http://localhost:3000"
     : "https://ai-powered-resume-backend-f3o3.onrender.com";
 
 /* ============================= */
-/*      FILE PREVIEW LOGIC      */
+/*      FILE PREVIEW LOGIC       */
 /* ============================= */
 
-const fileInput = document.getElementById("resumeImage");
+const fileInput = document.getElementById("resumeFile");
 const previewBox = document.getElementById("imagePreview");
 const previewImg = document.getElementById("previewImg");
 const fileNameDisplay = document.getElementById("fileName");
@@ -15,19 +16,19 @@ const analyzeBtn = document.getElementById("analyzeBtn");
 const downloadBtn = document.getElementById("downloadBtn");
 
 fileInput.addEventListener("change", () => {
-
   const file = fileInput.files[0];
 
   if (!file) {
     previewBox.classList.add("hidden");
     fileNameDisplay.classList.add("hidden");
+    fileNameDisplay.textContent = "";
+    previewImg.src = "";
     return;
   }
 
   fileNameDisplay.classList.remove("hidden");
 
   if (file.type.startsWith("image/")) {
-
     fileNameDisplay.textContent = "🖼 Image Uploaded: " + file.name;
 
     const reader = new FileReader();
@@ -37,33 +38,30 @@ fileInput.addEventListener("change", () => {
     };
 
     reader.readAsDataURL(file);
-
-  } else if (file.type.includes("pdf")) {
-
+  } else if (file.type === "application/pdf") {
     previewBox.classList.add("hidden");
+    previewImg.src = "";
     fileNameDisplay.textContent = "📄 PDF Uploaded: " + file.name;
-
   } else {
     previewBox.classList.add("hidden");
+    previewImg.src = "";
     fileNameDisplay.textContent = "Unsupported file type";
   }
-
 });
-
 
 /* ============================= */
 /*       ANALYZE BUTTON          */
 /* ============================= */
 
 analyzeBtn.addEventListener("click", async () => {
-
   const resumeText = document.getElementById("resumeText").value.trim();
-  const resumeFile = document.getElementById("resumeImage").files[0];
+  const resumeFile = document.getElementById("resumeFile").files[0];
   const jobRole = document.getElementById("jobRole").value.trim();
   const experience = document.getElementById("experience").value;
 
   const statusMessage = document.getElementById("statusMessage");
   const outputSection = document.getElementById("output");
+  const suggestionsList = document.getElementById("suggestions");
 
   if (!resumeText && !resumeFile) {
     alert("Please paste resume text OR upload PDF/Image.");
@@ -74,25 +72,24 @@ analyzeBtn.addEventListener("click", async () => {
   analyzeBtn.textContent = "Analyzing...";
   statusMessage.textContent = "🤖 Calling Gemini AI... Please wait...";
   statusMessage.style.color = "#555";
+  downloadBtn.classList.add("hidden");
 
   try {
-
     let response;
 
     if (resumeText) {
-
       response = await fetch(`${API_BASE}/analyze-resume`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           resumeText,
           jobRole,
-          experience
-        })
+          experience,
+        }),
       });
-
     } else {
-
       const formData = new FormData();
       formData.append("resumeFile", resumeFile);
       formData.append("jobRole", jobRole);
@@ -100,7 +97,7 @@ analyzeBtn.addEventListener("click", async () => {
 
       response = await fetch(`${API_BASE}/analyze-resume-file`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
     }
 
@@ -111,24 +108,29 @@ analyzeBtn.addEventListener("click", async () => {
     }
 
     document.getElementById("score").textContent =
-      data.score ? data.score + " / 100" : "N/A";
+      typeof data.score === "number" ? `${data.score} / 100` : "N/A";
 
     document.getElementById("skills").textContent =
-      data.skills || "None";
+      Array.isArray(data.missingSkills) && data.missingSkills.length > 0
+        ? data.missingSkills.join(", ")
+        : "None";
 
-    const suggestionsList = document.getElementById("suggestions");
     suggestionsList.innerHTML = "";
 
-    if (Array.isArray(data.suggestions)) {
-      data.suggestions.forEach(item => {
+    if (Array.isArray(data.suggestions) && data.suggestions.length > 0) {
+      data.suggestions.forEach((item) => {
         const li = document.createElement("li");
         li.textContent = item;
         suggestionsList.appendChild(li);
       });
+    } else {
+      const li = document.createElement("li");
+      li.textContent = "No suggestions provided.";
+      suggestionsList.appendChild(li);
     }
 
     document.getElementById("improvedResume").innerHTML =
-      data.improvedResume
+      data.improvedResume && data.improvedResume.trim()
         ? data.improvedResume.replace(/\n/g, "<br>")
         : "No improved version provided.";
 
@@ -139,30 +141,21 @@ analyzeBtn.addEventListener("click", async () => {
 
     statusMessage.textContent = "✅ Gemini analysis complete!";
     statusMessage.style.color = "green";
-
   } catch (error) {
-
     console.error("Error:", error);
-    statusMessage.textContent =
-      "❌ Error analyzing resume. Make sure backend is running.";
+    statusMessage.textContent = `❌ ${error.message}`;
     statusMessage.style.color = "red";
-
   } finally {
-
     analyzeBtn.disabled = false;
     analyzeBtn.textContent = "Analyze & Improve Resume";
-
   }
-
 });
 
-
 /* ============================= */
-/*   CLEAN PROFESSIONAL PDF     */
+/*   CLEAN PROFESSIONAL PDF      */
 /* ============================= */
 
 downloadBtn.addEventListener("click", () => {
-
   const resumeContent = document.getElementById("improvedResume").innerText;
 
   if (!resumeContent.trim()) {
@@ -178,7 +171,6 @@ downloadBtn.addEventListener("click", () => {
   const margin = 20;
   const usableWidth = pageWidth - margin * 2;
 
-  // Start slightly below top for clean margin
   let yPosition = 25;
 
   doc.setFont("helvetica", "normal");
@@ -186,8 +178,7 @@ downloadBtn.addEventListener("click", () => {
 
   const lines = doc.splitTextToSize(resumeContent, usableWidth);
 
-  lines.forEach(line => {
-
+  lines.forEach((line) => {
     if (yPosition > pageHeight - margin) {
       doc.addPage();
       yPosition = margin;
@@ -195,19 +186,13 @@ downloadBtn.addEventListener("click", () => {
 
     doc.text(line, margin, yPosition);
     yPosition += 7;
-
   });
 
-  // Footer (optional – remove if you don't want it)
   doc.setFontSize(9);
   doc.setTextColor(120);
-  doc.text(
-    "Generated by AI Resume Feedback",
-    pageWidth / 2,
-    pageHeight - 10,
-    { align: "center" }
-  );
+  doc.text("Generated by AI Resume Feedback", pageWidth / 2, pageHeight - 10, {
+    align: "center",
+  });
 
   doc.save("Improved_Resume.pdf");
-
 });

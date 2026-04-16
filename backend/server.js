@@ -31,7 +31,7 @@ const PROJECT_ROOT = path.join(__dirname, "..");
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
 /* ============================= */
@@ -54,6 +54,60 @@ const model = genAI.getGenerativeModel({
 });
 
 /* ============================= */
+/*       HELPER FUNCTIONS        */
+/* ============================= */
+
+function extractJsonFromText(text) {
+  if (!text || typeof text !== "string") {
+    throw new Error("Empty response from Gemini");
+  }
+
+  let cleanText = text.trim();
+
+  // Remove markdown code fences
+  cleanText = cleanText.replace(/```json/gi, "").replace(/```/g, "").trim();
+
+  // Try direct JSON parse first
+  try {
+    return JSON.parse(cleanText);
+  } catch (e) {
+    // continue to fallback
+  }
+
+  // Try extracting the first JSON object
+  const start = cleanText.indexOf("{");
+  const end = cleanText.lastIndexOf("}");
+
+  if (start === -1 || end === -1 || end <= start) {
+    console.error("⚠ Gemini Raw Output:", cleanText);
+    throw new Error("Invalid JSON returned from Gemini");
+  }
+
+  const possibleJson = cleanText.slice(start, end + 1);
+
+  try {
+    return JSON.parse(possibleJson);
+  } catch (e) {
+    console.error("⚠ Gemini Raw Output:", cleanText);
+    throw new Error("Invalid JSON returned from Gemini");
+  }
+}
+
+function normalizeAnalysis(data) {
+  return {
+    score: typeof data.score === "number" ? data.score : 0,
+    missingSkills: Array.isArray(data.missingSkills)
+      ? data.missingSkills
+      : typeof data.skills === "string"
+      ? data.skills.split(",").map((s) => s.trim()).filter(Boolean)
+      : [],
+    suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+    improvedResume:
+      typeof data.improvedResume === "string" ? data.improvedResume : "",
+  };
+}
+
+/* ============================= */
 /*   ANALYZE TEXT WITH GEMINI    */
 /* ============================= */
 
@@ -61,13 +115,25 @@ async function analyzeResumeWithGemini(resumeText, jobRole, experience) {
   const prompt = `
 You are a professional ATS Resume Reviewer.
 
-Return ONLY valid JSON in this format:
+Analyze the resume and return ONLY valid JSON.
+Do not add any explanation.
+Do not add markdown.
+Do not use \`\`\`.
+
+Return exactly in this format:
 {
-  "score": number,
-  "skills": string,
-  "suggestions": string[],
-  "improvedResume": string
+  "score": 85,
+  "missingSkills": ["skill1", "skill2"],
+  "suggestions": ["suggestion 1", "suggestion 2"],
+  "improvedResume": "full improved resume text here"
 }
+
+Rules:
+- "score" must be a number from 0 to 100
+- "missingSkills" must be an array of strings
+- "suggestions" must be an array of strings
+- "improvedResume" must be a single string
+- Return only one JSON object
 
 Target Job Role: ${jobRole || "Not specified"}
 Experience Level: ${experience || "Not specified"}
@@ -80,15 +146,10 @@ ${resumeText}
   const response = await result.response;
   const text = response.text();
 
-  const cleanText = text.replace(/```json|```/g, "").trim();
-  const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+  console.log("✅ Raw Gemini Response:\n", text);
 
-  if (!jsonMatch) {
-    console.error("⚠ Gemini Raw Output:", cleanText);
-    throw new Error("Invalid JSON returned from Gemini");
-  }
-
-  return JSON.parse(jsonMatch[0]);
+  const parsed = extractJsonFromText(text);
+  return normalizeAnalysis(parsed);
 }
 
 /* ============================= */
@@ -99,7 +160,7 @@ app.post("/analyze-resume", async (req, res) => {
   try {
     const { resumeText, jobRole, experience } = req.body;
 
-    if (!resumeText) {
+    if (!resumeText || !resumeText.trim()) {
       return res.status(400).json({ error: "resumeText is required" });
     }
 
@@ -110,7 +171,6 @@ app.post("/analyze-resume", async (req, res) => {
     );
 
     res.json(result);
-
   } catch (err) {
     console.error("❌ Text Analysis Error:", err.message);
     res.status(500).json({ error: err.message });
@@ -123,7 +183,6 @@ app.post("/analyze-resume", async (req, res) => {
 
 app.post("/analyze-resume-file", upload.single("resumeFile"), async (req, res) => {
   try {
-
     if (!req.file) {
       return res.status(400).json({ error: "File is required" });
     }
@@ -150,8 +209,8 @@ app.post("/analyze-resume-file", upload.single("resumeFile"), async (req, res) =
           },
         },
         {
-          text: "Extract all resume text clearly. Return only plain text."
-        }
+          text: "Extract all text from this resume image clearly. Return only plain text.",
+        },
       ]);
 
       const response = await result.response;
@@ -164,7 +223,7 @@ app.post("/analyze-resume-file", upload.single("resumeFile"), async (req, res) =
       });
     }
 
-    if (!extractedText || extractedText.length < 20) {
+    if (!extractedText || extractedText.trim().length < 20) {
       throw new Error("Could not extract resume content");
     }
 
@@ -175,13 +234,14 @@ app.post("/analyze-resume-file", upload.single("resumeFile"), async (req, res) =
     );
 
     res.json(analysis);
-
   } catch (err) {
     console.error("❌ File Analysis Error:", err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
+/* ============================= */
+/*          HEALTH ROUTE         */
 /* ============================= */
 
 app.get("/health", (req, res) => {
